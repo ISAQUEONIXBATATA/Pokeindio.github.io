@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Pokeindio Épica</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/x-icon" href="logo-pokeindio.ico">
+<style>
+:root {
+  --bg: #f5f5f5;
+  --accent: #ff1c1c;
+  --card: #fff;
+  --green1: #4caf50;
+  --green2: #2e7d32;
+}
+/* Geral */
+* { box-sizing: border-box; }
+body { font-family:"Trebuchet MS",Arial,sans-serif; background:linear-gradient(180deg,#ffcb05,var(--bg)); margin:0; padding:0 20px 80px; color:#222; position:relative; overflow-x:hidden; }
+/* Partículas */
+.particle { position:fixed; width:6px; height:6px; background:yellow; border-radius:50%; opacity:0.8; z-index:-1; animation:float 10s linear infinite;}
+@keyframes float { 0%{transform:translateY(0) translateX(0);opacity:0.8;} 50%{opacity:0.3;} 100%{transform:translateY(-1000px) translateX(1000px);opacity:0;} }
+/* Pokébolas decorativas */
+.pokeball-bg { position:fixed; width:120px; height:120px; background:linear-gradient(to bottom, red 50%, white 50%); border:6px solid black; border-radius:50%; opacity:0.15; z-index:-1; animation:spin 20s linear infinite; }
+.pokeball-bg::after { content:""; position:absolute; top:50%; left:50%; width:30px; height:30px; background:white; border:5px solid black; border-radius:50%; transform:translate(-50%,-50%);}
+.pokeball1{top:10%; left:5%;} .pokeball2{top:40%; right:5%; animation-duration:25s;} .pokeball3{bottom:15%; left:15%; animation-duration:30s;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+/* Container e header */
+.container { max-width:1000px; margin:0 auto; }
+header { display:flex; flex-direction:column; align-items:center; gap:12px; margin-bottom:18px; text-align:center; padding:20px; background:linear-gradient(90deg,#3b4cca,#ff1c1c); color:white; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+#logo{width:120px;border-radius:50%;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,0.3);}
+h1{font-size:2rem;margin:0;text-shadow:2px 2px 0 #222;}
+#contador{font-weight:700;margin:6px 0;font-size:1.1rem;}
+.progresso-container{width:100%;height:18px;background:#e6e6e6;border-radius:999px;overflow:hidden;margin:12px 0;}
+.progresso-barra{height:100%;width:0;background:linear-gradient(90deg,var(--green1),var(--green2));transition: width .25s;}
+
+/* Ações */
+.acoes{margin-top:10px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;}
+#search{padding:8px 12px;border:2px solid #3b4cca;border-radius:8px;font-size:1rem;width:220px;}
+#reset{background:#ff1c1c;color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:0.95rem;cursor:pointer;transition:0.2s;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+#reset:hover{background:#c71414;}
+
+/* Pokédex */
+.pokedex{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:14px;margin-top:20px;}
+.pokemon{background:var(--card);border:2px solid #ccc;border-radius:12px;padding:10px;text-align:center;transition:.15s;cursor:pointer;user-select:none;box-shadow:0 2px 6px rgba(0,0,0,0.1);position:relative;}
+.pokemon:hover{transform:translateY(-5px) rotate(-2deg);box-shadow:0 6px 12px rgba(0,0,0,0.2);}
+.pokemon.captured{background:#d9fdd3;border-color:#2e7d32;box-shadow:0 4px 10px rgba(0,0,0,0.15);}
+.pokemon img{width:80px;height:80px;image-rendering:pixelated;transition: transform .2s;}
+.pokemon span{display:block;margin-top:6px;font-weight:600;font-size:0.9rem;}
+.pokemon:hover img{transform: translateY(-8px) rotate(-5deg);}
+
+/* Botão topo */
+#topBtn{position:fixed;bottom:20px;right:20px;background:#3b4cca;color:white;border:none;border-radius:50%;width:50px;height:50px;font-size:20px;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.3);display:none;align-items:center;justify-content:center;z-index:100;}
+#topBtn:hover{background:#ff1c1c;}
+
+/* Tremor e brilho Pokémon */
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-5px);}40%{transform:translateX(5px);}60%{transform:translateX(-5px);}80%{transform:translateX(5px);}}
+.captured-glow{animation:glowAnim 0.8s ease-in-out;}
+@keyframes glowAnim{0%{box-shadow:0 0 0 gold;}25%{box-shadow:0 0 10px gold;}50%{box-shadow:0 0 20px gold;}75%{box-shadow:0 0 10px gold;}100%{box-shadow:0 0 0 gold;}}
+
+/* Pokébola animada e faíscas */
+.pokeball-capture{position:absolute;width:50px;height:50px;pointer-events:none;background:linear-gradient(to bottom, red 50%, white 50%);border:4px solid black;border-radius:50%;z-index:1000;transform:scale(0) rotate(0deg);animation:captureAnim 0.8s forwards;}
+.pokeball-capture::after{content:"";position:absolute;top:50%;left:50%;width:20px;height:20px;background:white;border:3px solid black;border-radius:50%;transform:translate(-50%,-50%);}
+@keyframes captureAnim{0%{transform:scale(0) rotate(0deg);opacity:0;}30%{transform:scale(1.2) rotate(180deg);opacity:1;}60%{transform:scale(1) rotate(360deg);opacity:1;}100%{transform:scale(0) rotate(540deg);opacity:0;}}
+.sparkle{position:absolute;width:6px;height:6px;background:yellow;border-radius:50%;opacity:0;z-index:1001;box-shadow:0 0 8px yellow,0 0 12px white;animation:sparkleAnim 0.6s forwards;}
+@keyframes sparkleAnim{0%{transform:translate(0,0) scale(0);opacity:1;}50%{transform:translate(var(--dx),var(--dy)) scale(1);opacity:1;}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0;}}
+</style>
+<body>
+
+<div class="pokeball-bg pokeball1"></div>
+<div class="pokeball-bg pokeball2"></div>
+<div class="pokeball-bg pokeball3"></div>
+
+<div class="container">
+  <header>
+    <div class="brand">
+      <img id="logo" src="logo-pokeindio.ico" alt="Logo Pokeindio">
+      <h1>Pokeindio</h1>
+      <div id="contador">0 / 151 capturados</div>
+    </div>
+    <div class="progresso-container">
+      <div class="progresso-barra" id="barra"></div>
+    </div>
+    <div class="acoes">
+      <input type="text" id="search" placeholder="🔎 Pesquisar Pokémon...">
+      <button id="reset">🔄 Resetar Capturas</button>
+    </div>
+  </header>
+
+  <div class="pokedex" id="pokedex"></div>
+
+  <footer>
+    Pokédex com os 151 Pokémon originais de Kanto • Feita por Isaque Índio
+  </footer>
+</div>
+
+<button id="topBtn">⬆️</button>
+
+<script>
+// Lista simplificada de tipos por Pokémon (1-151)
+const tipos = ['Grass','Grass','Grass','Fire','Fire','Fire','Water','Water','Water','Bug','Bug','Bug',
+'Bug','Bug','Bug','Normal','Normal','Normal','Normal','Normal','Normal','Normal','Poison','Poison',
+'Electric','Electric','Ground','Ground','Poison','Poison','Poison','Poison','Poison','Poison','Fairy','Fairy',
+'Fire','Fire','Normal','Normal','Poison','Poison','Grass','Grass','Grass','Bug','Bug','Bug','Bug','Ground','Ground',
+'Normal','Normal','Water','Water','Water','Psychic','Psychic','Psychic','Fighting','Fighting','Fighting',
+'Grass','Grass','Grass','Water','Water','Water','Water','Rock','Rock','Rock','Fire','Fire','Water','Water',
+'Poison','Poison','Water','Water','Ghost','Ghost','Ghost','Rock','Psychic','Psychic','Water','Water','Electric','Electric',
+'Grass','Grass','Ground','Ground','Normal','Grass','Normal','Water','Water','Water','Water','Water','Water','Normal',
+'Bug','Ice','Electric','Fire','Normal','Water','Water','Normal','Normal','Normal','Normal','Normal','Fire','Water','Water',
+'Normal','Normal','Water','Electric','Electric','Fire','Normal','Rock','Rock','Rock','Normal','Ice','Electric','Fire',
+'Normal','Water','Water','Rock','Normal','Ice','Dragon','Dragon','Dragon','Psychic','Psychic'];
+
+// Cores por tipo
+const cores = {
+  Grass:'#78C850', Fire:'#F08030', Water:'#6890F0', Electric:'#F8D030', Normal:'#A8A878',
+  Flying:'#A890F0', Poison:'#A040A0', Ground:'#E0C068', Fighting:'#C03028', Psychic:'#F85888',
+  Rock:'#B8A038', Bug:'#A8B820', Ghost:'#705898', Ice:'#98D8D8', Dragon:'#7038F8', Fairy:'#EE99AC'
+};
+
+const pokedexDiv = document.getElementById('pokedex');
+const contador = document.getElementById('contador');
+const barra = document.getElementById('barra');
+const searchInput = document.getElementById('search');
+const resetBtn = document.getElementById('reset');
+const topBtn = document.getElementById('topBtn');
+
+let captured = JSON.parse(localStorage.getItem('captured')) || [];
+let somAtivado = false;
+
+// Som global ativado após clique
+document.body.addEventListener('click', () => { somAtivado = true; }, { once:true });
+
+// Lista de Pokémon
+const pokemons = [ "Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard","Squirtle","Wartortle","Blastoise","Caterpie","Metapod","Butterfree","Weedle","Kakuna","Beedrill","Pidgey","Pidgeotto","Pidgeot","Rattata","Raticate","Spearow","Fearow","Ekans","Arbok","Pikachu","Raichu","Sandshrew","Sandslash","Nidoran♀","Nidorina","Nidoqueen","Nidoran♂","Nidorino","Nidoking","Clefairy","Clefable","Vulpix","Ninetales","Jigglypuff","Wigglytuff","Zubat","Golbat","Oddish","Gloom","Vileplume","Paras","Parasect","Venonat","Venomoth","Diglett","Dugtrio","Meowth","Persian","Psyduck","Golduck","Mankey","Primeape","Growlithe","Arcanine","Poliwag","Poliwhirl","Poliwrath","Abra","Kadabra","Alakazam","Machop","Machoke","Machamp","Bellsprout","Weepinbell","Victreebel","Tentacool","Tentacruel","Geodude","Graveler","Golem","Ponyta","Rapidash","Slowpoke","Slowbro","Magnemite","Magneton","Farfetch’d","Doduo","Dodrio","Seel","Dewgong","Grimer","Muk","Shellder","Cloyster","Gastly","Haunter","Gengar","Onix","Drowzee","Hypno","Krabby","Kingler","Voltorb","Electrode","Exeggcute","Exeggutor","Cubone","Marowak","Hitmonlee","Hitmonchan","Lickitung","Koffing","Weezing","Rhyhorn","Rhydon","Chansey","Tangela","Kangaskhan","Horsea","Seadra","Goldeen","Seaking","Staryu","Starmie","Mr. Mime","Scyther","Jynx","Electabuzz","Magmar","Pinsir","Tauros","Magikarp","Gyarados","Lapras","Ditto","Eevee","Vaporeon","Jolteon","Flareon","Porygon","Omanyte","Omastar","Kabuto","Kabutops","Aerodactyl","Snorlax","Articuno","Zapdos","Moltres","Dratini","Dragonair","Dragonite","Mewtwo","Mew"];
+
+// Funções de captura épica com tipo
+function capturar(div,index){
+  const tipo = tipos[index];
+  div.style.borderColor = cores[tipo]||'#000';
+  div.style.animation = 'shake 0.3s';
+  div.addEventListener('animationend',()=>{
+    div.style.animation='';
+    const rect=div.getBoundingClientRect();
+    const ball=document.createElement('div'); ball.className='pokeball-capture';
+    document.body.appendChild(ball);
+    const x=rect.left+rect.width/2-25+window.scrollX;
+    const y=rect.top+rect.height/2-25+window.scrollY;
+    ball.style.left=x+'px'; ball.style.top=y+'px';
+    if(somAtivado){ const snd=new Audio('https://freesound.org/data/previews/341/341695_3248244-lq.mp3'); snd.volume=0.5; snd.play(); }
+    div.style.transition='transform 0.3s'; div.style.transform='translateY(-20px) rotate(-10deg)';
+    setTimeout(()=>div.style.transform='';},300);
+
+// Faíscas épicas
+for(let i=0;i<8;i++){
+  const sparkle=document.createElement('div');
+  sparkle.className='sparkle';
+  document.body.appendChild(sparkle);
+  const dx=(Math.random()-0.5)*60+'px';
+  const dy=(Math.random()-0.5)*60+'px';
+  sparkle.style.setProperty('--dx',dx);
+  sparkle.style.setProperty('--dy',dy);
+  sparkle.style.left=x+25+'px';
+  sparkle.style.top=y+25+'px';
+  sparkle.addEventListener('animationend',()=>sparkle.remove());
+}
+
+ball.addEventListener('animationend',()=>ball.remove());
+
+// Glow ao capturar
+if(!div.classList.contains('captured')){
+  div.classList.add('captured-glow');
+  setTimeout(()=>div.classList.remove('captured-glow'),800);
+}
+}, {once:true});
+}
+
+// Criar card Pokémon
+function criarCard(pokemon,index){
+  const div=document.createElement('div');
+  div.className='pokemon';
+  const imgUrl=`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${index+1}.png`;
+  div.innerHTML=`<img src="${imgUrl}" alt="${pokemon}"><span>${index+1}. ${pokemon}</span>`;
+  if(captured.includes(index)) div.classList.add('captured');
+
+  div.addEventListener('click',()=>{
+    if(captured.includes(index)){
+      captured=captured.filter(i=>i!==index);
+      div.classList.remove('captured');
+    } else {
+      captured.push(index);
+      div.classList.add('captured');
+    }
+    localStorage.setItem('captured',JSON.stringify(captured));
+    capturar(div,index);
+    atualizarProgresso();
+  });
+  return div;
+}
+
+// Renderizar Pokédex com filtro
+function render(filtro=''){
+  pokedexDiv.innerHTML='';
+  const frag=document.createDocumentFragment();
+  pokemons.forEach((pkm,i)=>{
+    if(pkm.toLowerCase().includes(filtro) || (i+1).toString().includes(filtro)){
+      frag.appendChild(criarCard(pkm,i));
+    }
+  });
+  pokedexDiv.appendChild(frag);
+}
+
+// Atualizar contador e barra
+function atualizarProgresso(){
+  contador.textContent=`${captured.length} / ${pokemons.length} capturados`;
+  const perc=(captured.length/pokemons.length)*100;
+  barra.style.width=perc+'%';
+}
+
+// Busca
+searchInput.addEventListener('input',()=>{
+  const filtro=searchInput.value.toLowerCase();
+  render(filtro);
+});
+
+// Reset
+resetBtn.addEventListener('click',()=>{
+  if(confirm('Deseja realmente resetar todas as capturas?')){
+    captured=[];
+    localStorage.removeItem('captured');
+    atualizarProgresso();
+    render(searchInput.value.toLowerCase());
+  }
+});
+
+// Botão topo
+window.addEventListener('scroll',()=>{
+  topBtn.style.display=(document.documentElement.scrollTop>300)?"flex":"none";
+});
+topBtn.addEventListener('click',()=>{window.scrollTo({top:0,behavior:'smooth'});});
+
+// Partículas de fundo
+function criarParticulas(qtd=60){
+  for(let i=0;i<qtd;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    p.style.left=Math.random()*window.innerWidth+'px';
+    p.style.top=Math.random()*window.innerHeight+'px';
+    p.style.width=2+Math.random()*4+'px';
+    p.style.height=2+Math.random()*4+'px';
+    p.style.animationDuration=5+Math.random()*10+'s';
+    document.body.appendChild(p);
+  }
+}
+
+// Inicialização
+criarParticulas();
+render();
+atualizarProgresso();
+</script>
+</body>
+</html>
