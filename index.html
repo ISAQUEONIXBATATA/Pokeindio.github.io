@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Pokeindio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #f5f5f5;
+      --accent: #d62828;
+      --card: #fff;
+      --green1: #4caf50;
+      --green2: #2e7d32;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 20px;
+      color: #222;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 18px;
+      text-align: center;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #logo {
+      width: 120px;
+      height: auto;
+      border-radius: 50%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: var(--accent);
+      font-size: 1.8rem;
+      margin: 0;
+    }
+
+    #contador {
+      font-weight: 700;
+      margin: 6px 0;
+    }
+
+    .progresso-container {
+      width: 100%;
+      height: 14px;
+      background: #e6e6e6;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progresso-barra {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--green1), var(--green2));
+      transition: width .25s;
+    }
+
+    .pokedex {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .pokemon {
+      background: var(--card);
+      border: 1px solid #ccc;
+      border-radius: 12px;
+      padding: 10px;
+      text-align: center;
+      transition: .15s;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .pokemon:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+    }
+
+    .pokemon.captured {
+      background: #d9fdd3;
+      border-color: var(--green2);
+    }
+
+    .pokemon img {
+      width: 72px;
+      height: 72px;
+      image-rendering: pixelated;
+    }
+
+    .pokemon span {
+      display: block;
+      margin-top: 5px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    footer {
+      margin-top: 18px;
+      text-align: center;
+      color: #666;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="brand">
+        <!-- Substitua o caminho abaixo pelo nome do arquivo da logo -->
+        <img id="logo" src="logo-pokeindio.ico" alt="Logo PokeIndio">
+        <h1>Pokedex.Indio</h1>
+        <div id="contador">0 / 151 capturados</div>
+      </div>
+    </header>
+
+    <div class="progresso-container">
+      <div class="progresso-barra" id="barra"></div>
+    </div>
+
+    <div class="pokedex" id="pokedex"></div>
+
+    <footer>
+      Pokedex com os 151 Pokémon originais de Kanto • Feita por Isaque Índio
+    </footer>
+  </div>
+
+  <script>
+    const pokedexDiv = document.getElementById('pokedex');
+    const contador = document.getElementById('contador');
+    const barra = document.getElementById('barra');
+
+    const pokemons = [
+      "Bulbasaur","Ivysaur","Venusaur","Charmander","Charmeleon","Charizard",
+      "Squirtle","Wartortle","Blastoise","Caterpie","Metapod","Butterfree",
+      "Weedle","Kakuna","Beedrill","Pidgey","Pidgeotto","Pidgeot",
+      "Rattata","Raticate","Spearow","Fearow","Ekans","Arbok",
+      "Pikachu","Raichu","Sandshrew","Sandslash","Nidoran♀","Nidorina",
+      "Nidoqueen","Nidoran♂","Nidorino","Nidoking","Clefairy","Clefable",
+      "Vulpix","Ninetales","Jigglypuff","Wigglytuff","Zubat","Golbat",
+      "Oddish","Gloom","Vileplume","Paras","Parasect","Venonat","Venomoth",
+      "Diglett","Dugtrio","Meowth","Persian","Psyduck","Golduck",
+      "Mankey","Primeape","Growlithe","Arcanine","Poliwag","Poliwhirl",
+      "Poliwrath","Abra","Kadabra","Alakazam","Machop","Machoke","Machamp",
+      "Bellsprout","Weepinbell","Victreebel","Tentacool","Tentacruel",
+      "Geodude","Graveler","Golem","Ponyta","Rapidash","Slowpoke","Slowbro",
+      "Magnemite","Magneton","Farfetch’d","Doduo","Dodrio","Seel","Dewgong",
+      "Grimer","Muk","Shellder","Cloyster","Gastly","Haunter","Gengar",
+      "Onix","Drowzee","Hypno","Krabby","Kingler","Voltorb","Electrode",
+      "Exeggcute","Exeggutor","Cubone","Marowak","Hitmonlee","Hitmonchan",
+      "Lickitung","Koffing","Weezing","Rhyhorn","Rhydon","Chansey","Tangela",
+      "Kangaskhan","Horsea","Seadra","Goldeen","Seaking","Staryu","Starmie",
+      "Mr. Mime","Scyther","Jynx","Electabuzz","Magmar","Pinsir","Tauros",
+      "Magikarp","Gyarados","Lapras","Ditto","Eevee","Vaporeon","Jolteon",
+      "Flareon","Porygon","Omanyte","Omastar","Kabuto","Kabutops","Aerodactyl",
+      "Snorlax","Articuno","Zapdos","Moltres","Dratini","Dragonair","Dragonite",
+      "Mewtwo","Mew"
+    ];
+
+    let captured = JSON.parse(localStorage.getItem('captured')) || [];
+
+    function atualizarProgresso(){
+      contador.textContent = `${captured.length} / ${pokemons.length} capturados`;
+      const porcentagem = (captured.length / pokemons.length) * 100;
+      barra.style.width = porcentagem + '%';
+    }
+
+    function criarCard(pokemon, index){
+      const div = document.createElement('div');
+      div.className = 'pokemon';
+      const imgUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${index+1}.png`;
+      div.innerHTML = `<img src="${imgUrl}" alt="${pokemon}"><span>${index+1}. ${pokemon}</span>`;
+
+      if(captured.includes(index)) div.classList.add('captured');
+
+      div.addEventListener('click', () => {
+        if(captured.includes(index)){
+          captured = captured.filter(i => i !== index);
+          div.classList.remove('captured');
+        } else {
+          captured.push(index);
+          div.classList.add('captured');
+        }
+        localStorage.setItem('captured', JSON.stringify(captured));
+        atualizarProgresso();
+      });
+      return div;
+    }
+
+    function render(){
+      pokedexDiv.innerHTML = '';
+      const frag = document.createDocumentFragment();
+      pokemons.forEach((pkm,i) => frag.appendChild(criarCard(pkm,i)));
+      pokedexDiv.appendChild(frag);
+    }
+
+    render();
+    atualizarProgresso();
+  </script>
+</body>
+</html>
